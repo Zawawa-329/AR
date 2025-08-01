@@ -6,7 +6,7 @@
 //  Created by owner on 2025/08/01.
 //
 
-import SwiftUI
+/*import SwiftUI
 import RealityKit
 
 struct SleepView: View {
@@ -71,6 +71,21 @@ struct SleepView: View {
                 case .dressUp: DressUpView()
                 case .content: ContentView()}
             }
+        }
+    }
+}*/
+import SwiftUI
+
+struct SleepView: View {
+    var body: some View {
+        VStack {
+            Spacer()
+            Text("おやすみモード")
+                .font(.title)
+                .padding()
+                .background(Color.white.opacity(0.8))
+                .cornerRadius(10)
+                .padding()
         }
     }
 }
