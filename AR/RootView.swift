@@ -12,11 +12,19 @@ struct RootView: View {
 
     var body: some View {
         Group {
-            if appState.isLoggedIn {
-                // ログイン済みならStartViewへ
+            if appState.showSplash {
+                SplashView()
+                    .onAppear {
+                        // 2秒後にスプラッシュを非表示に
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                            withAnimation {
+                                appState.showSplash = false
+                            }
+                        }
+                    }
+            } else if appState.isLoggedIn {
                 StartView(userName: appState.userNameStore)
             } else {
-                // ログインしていなければLoginViewを表示
                 LoginView()
             }
         }
