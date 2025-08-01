@@ -7,24 +7,27 @@
 
 import SwiftUI
 
+
+
 struct SplashView: View {
     @State private var isActive = false
 
     var body: some View {
         ZStack {
-            Color.white.ignoresSafeArea()
+            Color(red: 1.0, green: 0.98, blue: 0.91).ignoresSafeArea()
 
             VStack {
                 Spacer()
 
-                Text("シマエナガといっしょ")
-                    .font(.system(size: 36, weight: .bold, design: .rounded))
-                    .foregroundColor(.blue)
-                    .opacity(isActive ? 1 : 0)
-                    .scaleEffect(isActive ? 1 : 0.8)
-                    .animation(.easeIn(duration: 1.2), value: isActive)
+                Image("logo")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 200, height: 200)
+                                    .opacity(isActive ? 1 : 0)
+                                    .scaleEffect(isActive ? 1 : 0.8)
+                                    .animation(.easeIn(duration: 1.2), value: isActive)
 
-                Spacer()
+                                Spacer()
             }
         }
         .onAppear {
