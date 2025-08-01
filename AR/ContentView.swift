@@ -80,7 +80,7 @@ struct ContentView: View {
     @State private var isMenuOpen: Bool = false
 
     enum Mode {
-        case content, care, walk, sleep, dressUp
+        case care, walk, sleep, dressUp
     }
 
     var body: some View {
@@ -118,7 +118,6 @@ struct ContentView: View {
                     Button("お散歩") { selectedMode = .walk; isMenuOpen = false }.foregroundColor(Color.green)
                     Button("おやすみ") { selectedMode = .sleep; isMenuOpen = false }.foregroundColor(Color.green)
                     Button("お着替え") { selectedMode = .dressUp; isMenuOpen = false }.foregroundColor(Color.green)
-                    Button("ホーム") { selectedMode = .content; isMenuOpen = false }.foregroundColor(Color.green)
                 }
                 .padding()
                 .background(Color.white)
@@ -141,8 +140,6 @@ struct ContentView: View {
                     SleepView()
                 case .dressUp:
                     DressUpView()
-                case .content:
-                    ContentView()
                 }
             }
         }
