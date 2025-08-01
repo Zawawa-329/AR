@@ -39,6 +39,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 // ObservableObjectで状態を管理
 class AppState: ObservableObject {
+    
+    static let shared = AppState()
+    
+    @Published var showSplash = true
     @Published var isLoggedIn = false
     @Published var userNameStore = ""
 }
