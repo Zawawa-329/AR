@@ -1,18 +1,19 @@
 //
-//  ContentView.swift
+//  WalkView.swift
 //  AR
 //
-//  Created by owner on 2025/07/29.
+//  Created by owner on 2025/08/01.
 //
+
 import SwiftUI
 import RealityKit
 
-struct ContentView: View {
+struct WalkView: View {
     @State private var isMenuOpen = false
     @State private var selectedMode: Mode? = nil
 
     enum Mode {
-        case care, walk, sleep, dressUp
+        case care, sleep, dressUp, content
     }
 
     var body: some View {
@@ -49,9 +50,9 @@ struct ContentView: View {
             if isMenuOpen {
                 VStack(alignment: .leading, spacing: 20) {
                     Button("お世話") { selectedMode = .care; isMenuOpen = false} .foregroundColor(Color.green)
-                    Button("お散歩") { selectedMode = .walk; isMenuOpen = false} .foregroundColor(Color.green)
                     Button("おやすみ") { selectedMode = .sleep; isMenuOpen = false} .foregroundColor(Color.green)
                     Button("お着替え") { selectedMode = .dressUp; isMenuOpen = false} .foregroundColor(Color.green)
+                    Button("ホーム") { selectedMode = .content; isMenuOpen = false} .foregroundColor(Color.green)
                 }
                 .padding()
                 .background(Color.white)
@@ -65,9 +66,9 @@ struct ContentView: View {
             if let mode = selectedMode {
                 switch mode {
                 case .care: CareView()
-                case .walk: WalkView()
                 case .sleep: SleepView()
-                case .dressUp: DressUpView()                }
+                case .dressUp: DressUpView()
+                case .content: ContentView()}
             }
         }
     }
