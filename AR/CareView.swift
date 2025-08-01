@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import RealityKit
+/*import RealityKit
 
 struct CareView: View {
     @State private var isMenuOpen = false
@@ -70,6 +70,20 @@ struct CareView: View {
                 case .dressUp: DressUpView()
                 case .content: ContentView()}
             }
+        }
+    }
+}*/
+
+struct CareView: View {
+    var body: some View {
+        VStack {
+            Spacer()
+            Text("お世話モード")
+                .font(.title)
+                .padding()
+                .background(Color.white.opacity(0.8))
+                .cornerRadius(10)
+                .padding()
         }
     }
 }

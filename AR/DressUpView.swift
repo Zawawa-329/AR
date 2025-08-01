@@ -5,7 +5,7 @@
 //  Created by owner on 2025/08/01.
 //
 import SwiftUI
-import RealityKit
+/*import RealityKit
 
 struct DressUpView: View {
     @State private var isMenuOpen = false
@@ -73,3 +73,18 @@ struct DressUpView: View {
     }
 }
 
+*/
+
+struct DressUpView: View {
+    var body: some View {
+        VStack {
+            Spacer()
+            Text("お着替えモード")
+                .font(.title)
+                .padding()
+                .background(Color.white.opacity(0.8))
+                .cornerRadius(10)
+                .padding()
+        }
+    }
+}
