@@ -8,13 +8,12 @@
 import SwiftUI
 
 struct StartView: View {
+    var userName: String
     @State private var showAR = false
 
     var body: some View {
-        VStack {
-            Spacer()
-
-            Text("AR キャラクターを表示する")
+        VStack(spacing: 40) {
+            Text("こんにちは、\(userName) さん")
                 .font(.title)
                 .padding()
 
@@ -22,19 +21,18 @@ struct StartView: View {
                 showAR = true
             }) {
                 Text("カメラを起動する")
-                    .font(.headline)
-                    .padding()
                     .frame(maxWidth: .infinity)
+                    .padding()
                     .background(Color.blue)
                     .foregroundColor(.white)
                     .cornerRadius(10)
-                    .padding()
+                    .padding(.horizontal)
             }
 
             Spacer()
         }
         .fullScreenCover(isPresented: $showAR) {
-            ContentView() // ← あなたのAR表示ビュー
+            ContentView() // AR画面
         }
     }
 }
