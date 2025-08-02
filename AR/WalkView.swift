@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-/*import RealityKit
+import RealityKit
 
 struct WalkView: View {
     @State private var isMenuOpen = false
@@ -73,18 +73,4 @@ struct WalkView: View {
         }
     }
 }
-*/
 
-struct WalkView: View {
-    var body: some View {
-        VStack {
-            Spacer()
-            Text("お散歩モード")
-                .font(.title)
-                .padding()
-                .background(Color.white.opacity(0.8))
-                .cornerRadius(10)
-                .padding()
-        }
-    }
-}
