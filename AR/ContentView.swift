@@ -73,10 +73,10 @@ struct ContentView: View {
             
             if isMenuOpen {
                 VStack(alignment: .leading, spacing: 20) {
-                    Button("お世話") { selectedMode = .care; isMenuOpen = false} .foregroundColor(Color.green)
-                    Button("お散歩") { selectedMode = .walk; isMenuOpen = false} .foregroundColor(Color.green)
-                    Button("おやすみ") { selectedMode = .sleep; isMenuOpen = false} .foregroundColor(Color.green)
-                    Button("お着替え") { selectedMode = .dressUp; isMenuOpen = false} .foregroundColor(Color.green)
+                    Button("お世話") { selectedMode = .care; isMenuOpen = false; aiComment = ""} .foregroundColor(Color.green)
+                    Button("お散歩") { selectedMode = .walk; isMenuOpen = false; aiComment = ""} .foregroundColor(Color.green)
+                    Button("おやすみ") { selectedMode = .sleep; isMenuOpen = false; aiComment = ""} .foregroundColor(Color.green)
+                    Button("お着替え") { selectedMode = .dressUp; isMenuOpen = false; aiComment = ""} .foregroundColor(Color.green)
                 }
                 .padding()
                 .background(Color.white)
