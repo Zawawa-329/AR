@@ -98,13 +98,33 @@ struct ContentView: View {
             VStack {
                 Spacer()
                 if isLoading {
-                    ProgressView("コメントを生成中...")
-                        .padding()
-                        .background(Color.black.opacity(0.7))
-                        .foregroundColor(.white)
-                        .cornerRadius(20)
-                        .padding(24)
-                } else if !aiComment.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("シマちゃん")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(Color(red: 0.2, green: 0.4, blue: 0.6))
+                            .padding(.top, 16)
+                            .padding(.horizontal, 24)
+                        
+                        ProgressView("考え中...")
+                            .font(.system(size: 16))
+                            .foregroundColor(Color.black)
+                            .padding(.vertical, 16)
+                            .padding(.horizontal, 24)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(
+                        RoundedRectangle(cornerRadius: 30)
+                            .fill(Color.white.opacity(0.95))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 30)
+                                    .stroke(Color(red: 0.95, green: 0.9, blue: 0.8).opacity(0.6), lineWidth: 4)
+                            )
+                            .shadow(color: Color(red: 0.95, green: 0.9, blue: 0.8).opacity(0.3), radius: 10, x: 0, y: 5)
+                    )
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 50)
+    
+                }else if !aiComment.isEmpty {
                     VStack(alignment: .leading, spacing: 8){
                         Text("シマちゃん")
                             .font(.system(size: 18, weight: .bold))
@@ -126,7 +146,7 @@ struct ContentView: View {
                                 RoundedRectangle(cornerRadius: 30)
                                     .stroke(Color(red: 0.95, green: 0.9, blue: 0.8).opacity(0.6), lineWidth: 4) // ピンクの枠線
                             )
-                            .shadow(color: Color.pink.opacity(0.3), radius: 10, x: 0, y: 5))
+                            .shadow(color: Color(red: 0.95, green: 0.9, blue: 0.8).opacity(0.3), radius: 10, x: 0, y: 5))
                     .padding(.horizontal, 24)
                     .padding(.bottom, 50)
                 }
