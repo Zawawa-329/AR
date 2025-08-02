@@ -12,6 +12,7 @@ import CoreLocation
 
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var location: CLLocationCoordinate2D?
+    @Published var heading: CLLocationDirection?
     
     private let manager = CLLocationManager()
     
@@ -21,6 +22,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         manager.desiredAccuracy = kCLLocationAccuracyBest
         manager.requestWhenInUseAuthorization()
         manager.startUpdatingLocation()
+        manager.startUpdatingHeading()
     }
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
@@ -29,6 +31,24 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
                 self.location = loc.coordinate
             }
         }
+    }
+    func locationManager(_ manager: CLLocationManager, didUpdateHeading newHeading: CLHeading) {
+          DispatchQueue.main.async {
+               self.heading = newHeading.trueHeading // 北を0°とする角度
+           }
+       }
+}
+
+struct ArcShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let radius = min(rect.width, rect.height) / 2
+        let center = CGPoint(x: rect.midX, y: rect.midY)
+        // 扇形を描画（中心角90°）
+        path.move(to: center)
+        path.addArc(center: center, radius: radius, startAngle: .degrees(-45), endAngle: .degrees(45), clockwise: false)
+        path.closeSubpath()
+        return path
     }
 }
 
@@ -49,9 +69,11 @@ struct WalkView: View {
     @State private var pendingDestination: CLLocationCoordinate2D? = nil
     @State private var showConfirmDestination = false
     @FocusState private var isSearchFocused: Bool
+    @State private var route: MKRoute? = nil
 
 
-    
+
+    //関数ゾーン
     //住所検索
     private func searchAddress() {
         let request = MKLocalSearch.Request()
@@ -91,20 +113,54 @@ struct WalkView: View {
             }
         }
     }
+    
+    private func calculateRoute() {
+        guard let start = locationManager.location, let dest = destination else { return }
+
+        let request = MKDirections.Request()
+        request.source = MKMapItem(placemark: MKPlacemark(coordinate: start))
+        request.destination = MKMapItem(placemark: MKPlacemark(coordinate: dest))
+        request.transportType = .walking //お散歩
+
+        let directions = MKDirections(request: request)
+        directions.calculate { response, error in
+            if let route = response?.routes.first {
+                DispatchQueue.main.async {
+                    self.route = route
+                }
+            }
+        }
+    }
 
 
+
+    //ボタン系ゾーン
     var body: some View {
         
         ZStack(alignment: .topLeading) {
             Map(position: $cameraPosition) {
                 if let loc = locationManager.location {
                     Annotation("", coordinate: loc) {
-                        Image("map_aicon")
-                            .resizable()
-                            .frame(width: 40, height: 40)
-                            .clipShape(Circle())
+                        ZStack {
+                            // ✅ 小さめの扇形（青い光）
+                            ArcShape()
+                                .fill(Color.blue.opacity(0.3))
+                                .frame(width: 70, height: 70) // ← 小さめ
+                                .rotationEffect(Angle(degrees: locationManager.heading ?? 0))
+                                .animation(.easeInOut(duration: 0.2), value: locationManager.heading)
+
+                            // ✅ 現在地アイコン
+                            Image("map_aicon")
+                                .resizable()
+                                .frame(width: 40, height: 40)
+                                .clipShape(Circle())
+                        }
+                        // ✅ 中央補正
+                        .offset(x: -35 + 20, y: -35 + 20)
                     }
                 }
+
+
                 
                 if let dest = destination {
                       Annotation("目的地", coordinate: dest) {
@@ -114,13 +170,18 @@ struct WalkView: View {
                        }
                    }
                 if let pending = pendingDestination {
-                        Annotation("", coordinate: pending) {
-                            Image(systemName: "mappin")
-                                .font(.system(size: 36))
-                                .foregroundColor(.blue)
-                        }
+                    Annotation("", coordinate: pending) {
+                        Image(systemName: "mappin")
+                            .font(.system(size: 36))
+                            .foregroundColor(.blue)
                     }
+                }
+                if let route = route {
+                       MapPolyline(route.polyline)
+                           .stroke(Color.blue, lineWidth: 5)
+                   }
             }
+            .zIndex(0)
 
 
             
@@ -183,9 +244,32 @@ struct WalkView: View {
                     }
                 }
                 .padding()
+                .padding(.top, 50)//位置について
                 
                 Spacer()
             }
+            .zIndex(10)
+            
+            if let route = route {
+                VStack {
+                    HStack {
+                        Text("距離: \(String(format: "%.1f", route.distance / 1000)) km")
+                            .font(.headline)
+                        Spacer()
+                        Text("かかる時間: \(Int(route.expectedTravelTime / 60)) 分")
+                            .font(.headline)
+                    }
+                    .padding()
+                    .background(Color.white.opacity(0.9))
+                    .cornerRadius(12)
+                    .shadow(radius: 3)
+                    .padding(.horizontal)
+                    .padding(.top, 140) // ✅ 検索バーの下に配置
+                    Spacer()
+                }
+                .transition(.move(edge: .top))
+            }
+
             
             //目的地決定
             if let pending = pendingDestination {
@@ -196,6 +280,7 @@ struct WalkView: View {
                         Button(action: {
                             destination = pending
                             pendingDestination = nil // 確定後は消す
+                            calculateRoute()
                         }) {
                             Text("この場所を目的地にする")
                                 .font(.headline)
@@ -209,9 +294,6 @@ struct WalkView: View {
                     }
                 }
             }
-
-
-
             
 
             if isMenuOpen {
@@ -228,16 +310,32 @@ struct WalkView: View {
                 .padding(.top, 70)
                 .padding(.leading, 10)
                 .transition(.move(edge: .leading))
+                .zIndex(100)//最前面
             }
 
             if let mode = selectedMode {
-                switch mode {
-                case .care: CareView()
-                case .sleep: SleepView()
-                case .dressUp: DressUpView()
-                case .content: ContentView()
+                ZStack(alignment: .topTrailing) {
+                    switch mode {
+                    case .care: CareView().background(Color.white).ignoresSafeArea()
+                    case .sleep: SleepView().background(Color.white).ignoresSafeArea()
+                    case .dressUp: DressUpView().background(Color.white).ignoresSafeArea()
+                    case .content: ContentView().background(Color.white).ignoresSafeArea()
+                    }
+
+                    // 戻るボタンを追加
+                    Button(action: { selectedMode = nil }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 28))
+                            .foregroundColor(.white)
+                            .padding()
+                            .background(Color.black.opacity(0.5))
+                            .clipShape(Circle())
+                    }
+                    .padding()
                 }
+                .zIndex(100)//最前面
             }
+
 
 
         }
