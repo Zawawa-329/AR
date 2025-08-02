@@ -1,4 +1,3 @@
-//
 //  ContentView.swift
 //  AR
 //
@@ -16,6 +15,7 @@ struct ContentView: View {
     @State private var selectedMode: Mode? = nil
     @State private var isLoading: Bool = false
     @State private var aiComment: String = ""
+    
     
     enum Mode {
         case care, walk, sleep, dressUp
@@ -36,28 +36,17 @@ struct ContentView: View {
     var body: some View {
         ZStack(alignment: .topLeading) {
             RealityView { content in
-               /* let model = Entity()
+                let model = Entity()
                 let mesh = MeshResource.generateBox(size: 0.1, cornerRadius: 0.005)
                 let material = SimpleMaterial(color: .gray, roughness: 0.15, isMetallic: true)
                 model.components.set(ModelComponent(mesh: mesh, materials: [material]))
-                model.position = [0, 0.05, 0]*/
+                model.position = [0, 0.05, 0]
                 
                 let anchor = AnchorEntity(.plane(.horizontal, classification: .any, minimumBounds: SIMD2<Float>(0.2, 0.2)))
-               
+                anchor.addChild(model)
                 content.add(anchor)
                 
                 content.camera = .spatialTracking
-                
-                Task{
-                    do{
-                        let entitiy=try await Entity(named:"shima")
-                       
-                        anchor.addChild(entitiy)
-                    }catch{
-                        print("error")
-                    }
-                }
-                
             }
             .edgesIgnoringSafeArea(.all)
             
@@ -126,7 +115,7 @@ struct ContentView: View {
     }
     
     func buildPrompt() -> String {
-        var prompt = "以下はユーザーのアンケート回答です。それに合った一言コメントを優しく伝えてください。\n\n"
+        var prompt = "以下はユーザーのアンケート回答です。それに合った一言コメントを優しく伝えてください。友達に話すみたいに。\n\n"
         for (qIndex, answerIndex) in userResponses.sorted(by: { $0.key < $1.key }) {
             if let question = questions[qIndex],
                let options = answersOptions[qIndex],
@@ -154,8 +143,10 @@ struct ContentView: View {
             return "URLエラー"
         }
         
-        // ★★★注意：ここに新しいAPIキーを貼り付けてください★★★
-        let apiKey = "sk-proj-YOUR_NEW_API_KEY_HERE"
+        guard let apiKey = loadAPIKeyFromCSV() else {
+                print("APIキーをCSVから読み込めませんでした。")
+                return "APIキー設定エラー"
+            }
         
         let headers = [
             "Content-Type": "application/json",
@@ -188,13 +179,31 @@ struct ContentView: View {
             return "ちょっと待ってね。: \(error.localizedDescription)"
         }
     }
+    // CSVファイルからAPIキーを読み込むヘルパー関数
+        func loadAPIKeyFromCSV() -> String? {
+            // プロジェクト内の keys.csv ファイルを探す
+            guard let filepath = Bundle.main.path(forResource: "keys", ofType: "csv") else {
+                return nil
+            }
+            
+            do {
+                let data = try String(contentsOfFile: filepath, encoding: .utf8)
+                // 行ごとに分割
+                let rows = data.components(separatedBy: "\n")
+                
+                for row in rows {
+                    // カンマで列を分割
+                    let columns = row.components(separatedBy: ",")
+                    // 最初の列が "apiKey" であれば、2番目の列を返す
+                    if columns.count > 1 && columns[0].trimmingCharacters(in: .whitespaces) == "apiKey" {
+                        return columns[1].trimmingCharacters(in: .whitespacesAndNewlines)
+                    }
+                }
+            } catch {
+                print("CSVファイルの読み込みエラー: \(error)")
+            }
+            
+            return nil
+        }
 }
 
-// ContentViewのプレビュー用コード
-#Preview {
-    ContentView(userResponses: [
-        0: 0, // サンプル回答
-        1: 0,
-        2: 0
-    ])
-}
