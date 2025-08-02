@@ -1,12 +1,4 @@
-//
-//  StareView.swift
-//  AR
-//
-//  Created by owner on 2025/07/31.
-//
-
 import SwiftUI
-
 
 struct StartView: View {
     var userName: String
@@ -24,67 +16,70 @@ struct StartView: View {
         Question(text: "お話は⁇", options: ["たくさんしたい☺️", "多めにしたい🙂", "普通😶", "あまりしたくない😕", "したくない🥲"])
     ]
     
-    // ContentViewが期待する [Int: Int] 型に修正
     @State private var userResponses: [Int: Int] = [:]
 
     var body: some View {
-        VStack(spacing: 40) {
-            Text("こんにちは、\(userName) さん")
-                .font(.title)
-                .padding()
+        ZStack { // ★ ここにZStackを追加
+            // ★ 背景色を薄い茶色に設定
+            Color(red: 0.95, green: 0.9, blue: 0.8)
+                .edgesIgnoringSafeArea(.all)
             
-            ScrollView {
-                VStack(spacing: 30) {
-                    // ForEachの記述をシンプルに修正
-                    ForEach(0..<questions.count, id: \.self) { index in
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text(questions[index].text)
-                                .font(.headline)
-                            
-                            ForEach(0..<questions[index].options.count, id: \.self) { optionIndex in
-                                let option = questions[index].options[optionIndex]
-                                Button(action: {
-                                    // 選択されたオプションのインデックスを保存
-                                    userResponses[index] = optionIndex
-                                }) {
-                                    HStack {
-                                        Text(option)
-                                            .foregroundColor(.black)
-                                        Spacer()
-                                        // userResponsesのキーと値を使って選択状態を判定
-                                        if userResponses[index] == optionIndex {
-                                            Image(systemName: "checkmark.circle.fill")
-                                                .foregroundColor(.blue)
+            // 既存のVStackはZStackの中に移動
+            VStack(spacing: 40) {
+                Text("こんにちは、\(userName) さん")
+                    .font(.title)
+                    .padding()
+            
+                ScrollView {
+                    VStack(spacing: 30) {
+                        ForEach(0..<questions.count, id: \.self) { index in
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text(questions[index].text)
+                                    .font(.headline)
+                                
+                                ForEach(0..<questions[index].options.count, id: \.self) { optionIndex in
+                                    let option = questions[index].options[optionIndex]
+                                    Button(action: {
+                                        userResponses[index] = optionIndex
+                                    }) {
+                                        HStack {
+                                            Text(option)
+                                                .foregroundColor(.black)
+                                            Spacer()
+                                            if userResponses[index] == optionIndex {
+                                                Image(systemName: "checkmark.circle.fill")
+                                                    .foregroundColor(.black)
+                                            }
                                         }
+                                        .padding()
+                                        .background(Color.white)
+                                        .cornerRadius(10)
                                     }
-                                    .padding()
-                                    .background(Color.gray.opacity(0.2))
-                                    .cornerRadius(10)
                                 }
                             }
+                            .padding(.horizontal)
                         }
-                        .padding(.horizontal)
                     }
-                    if userResponses.count == questions.count {
-                        Button(action: {
-                            showAR = true
-                        }) {
-                            Text("カメラを起動する")
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.blue)
-                                .foregroundColor(.white)
-                                .cornerRadius(10)
-                                .padding(.horizontal)
-                        }
+                    .padding(.vertical)
+                }
+                
+                if userResponses.count == questions.count {
+                    Button(action: {
+                        showAR = true
+                    }) {
+                        Text("カメラを起動する📸")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.black)
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
+                            .padding(.horizontal)
                     }
                 }
-                .padding(.vertical)
             }
-            Spacer()
-        }
+            .padding(.horizontal) // VStackに水平方向のpaddingを追加
+        } // ★ ここでZStackを閉じる
         .fullScreenCover(isPresented: $showAR) {
-            // ContentViewにuserResponsesを正しく渡す
             ContentView(userResponses: userResponses)
         }
     }
