@@ -20,28 +20,26 @@ func playBGM() {
 
 struct LoginView: View {
     @EnvironmentObject var appState: AppState
-    @State private var inputName: String = ""
-
-    private let fullText = "お帰りなさい"
+    @State private var inputName = ""
     @State private var displayedText = ""
     @State private var charIndex = 0
 
-    @State private var sparkles: [UUID: CGPoint] = [:]
+    private let fullText = "おかえりなさい"
 
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                // 背景
-                LinearGradient(gradient: Gradient(colors: [Color.pink.opacity(0.3), Color.white]),
-                               startPoint: .top,
-                               endPoint: .bottom)
+                // 背景画像
+                Image("login_background")
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
                     .ignoresSafeArea()
 
                 // メインUI
                 VStack(spacing: 30) {
                     Text(displayedText)
                         .font(.system(size: 36, weight: .semibold, design: .rounded))
-                        .foregroundColor(.purple)
+                        .foregroundColor(.brown)
                         .animation(.easeIn(duration: 0.2), value: displayedText)
 
                     TextField("あなたの名前を入力してね！", text: $inputName)
@@ -64,7 +62,7 @@ struct LoginView: View {
                             .foregroundColor(.white)
                             .padding(.vertical, 12)
                             .padding(.horizontal, 60)
-                            .background(inputName.isEmpty ? Color.gray : Color.blue)
+                            .background(inputName.isEmpty ? Color.brown : Color.brown)
                             .cornerRadius(25)
                             .shadow(color: .blue.opacity(0.3), radius: 5, x: 0, y: 3)
                     }
@@ -73,42 +71,7 @@ struct LoginView: View {
                     Spacer()
                 }
                 .padding(.top, 100)
-
-                // キラキラ表示
-                ForEach(Array(sparkles.keys), id: \.self) { id in
-                    if let position = sparkles[id] {
-                        Sparkle(position: position)
-                            .onAppear {
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                                    sparkles.removeValue(forKey: id)
-                                }
-                            }
-                    }
-                }
             }
-            .contentShape(Rectangle())
-            .gesture(
-                DragGesture(minimumDistance: 0)
-                    .onEnded { value in
-                        // ジオメトリ座標系での位置取得が重要
-                        let center = value.location
-
-                        let count = 12
-                        let radius: CGFloat = 40
-
-                        for i in 0..<count {
-                            let angle = 2 * .pi / CGFloat(count)
-                            let theta = angle * CGFloat(i)
-
-                            let x = center.x + cos(theta) * radius
-                            let y = center.y + sin(theta) * radius
-                            let sparklePosition = CGPoint(x: x, y: y)
-
-                            let id = UUID()
-                            sparkles[id] = sparklePosition
-                        }
-                    }
-            )
             .onAppear {
                 playBGM()
                 startTypewriter()
@@ -131,3 +94,4 @@ struct LoginView: View {
         }
     }
 }
+
