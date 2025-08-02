@@ -12,6 +12,10 @@ struct SleepView: View {
     @State private var isLightOff = false
     @State private var showZzzBubble = false
     @State private var shimaScreenPosition: CGPoint? = nil
+    
+    // State to hold the star model entities
+    @State private var starEntities: [ModelEntity] = []
+    @State private var animationTimer: Timer?
 
     enum Mode {
         case care, walk, dressUp, content
@@ -19,7 +23,8 @@ struct SleepView: View {
 
     var body: some View {
         ZStack(alignment: .topLeading) {
-            ARViewContainer(shimaScreenPosition: $shimaScreenPosition)
+            // Pass the binding for stars to the ARViewContainer
+            ARViewContainer(shimaScreenPosition: $shimaScreenPosition, starEntities: $starEntities)
 
             // zzz 吹き出し（キャラクター上に追従）
             if let position = shimaScreenPosition, showZzzBubble {
@@ -104,7 +109,7 @@ struct SleepView: View {
             // モードビュー表示
             if let mode = selectedMode {
                 switch mode {
-                case .care: CareView()
+                case .care: CareView() // Assuming these views exist
                 case .walk: WalkView()
                 case .dressUp: DressUpView()
                 case .content: ContentView()
@@ -112,10 +117,13 @@ struct SleepView: View {
             }
         }
         .onAppear {
-            AudioManager.shared.playBGM(named: "bgm-sleep") // BGM 再生
+            AudioManager.shared.playBGM(named: "bgm-sleep")
+            generateStars()
+            startStarAnimation()
         }
         .onDisappear {
-            AudioManager.shared.stopBGM() // BGM 停止
+            AudioManager.shared.stopBGM()
+            stopStarAnimation()
         }
         .onReceive(NotificationCenter.default.publisher(for: .zzzHitNotification)) { _ in
             withAnimation {
@@ -128,12 +136,65 @@ struct SleepView: View {
             }
         }
     }
+
+    /// Creates star entities at random positions and stores them in state.
+    func generateStars(count: Int = 80) {
+        var newStars: [ModelEntity] = []
+        for _ in 0..<count {
+            // Create a shiny, unlit material
+            let material = SimpleMaterial(color: .white, roughness: 0.2, isMetallic: true)
+            let star = ModelEntity(mesh: .generateSphere(radius: Float.random(in: 0.005...0.01)), materials: [material])
+            
+            // Unlit material makes it glow
+            if var unlitMaterial = try? UnlitMaterial(color: .yellow) {
+                unlitMaterial.color = .init(tint: .yellow.withAlphaComponent(0.99), texture: nil)
+                star.model?.materials = [unlitMaterial]
+            }
+
+            // ★ここでライト追加
+            let light = PointLightComponent(color: .yellow, intensity: 200000)
+            
+            star.components.set(light)
+
+            // Position stars in a sphere around the user
+            let theta = Float.random(in: 0..<(2 * .pi)) // Horizontal angle
+            let phi = acos(2 * Float.random(in: 0...1) - 1) // Vertical angle
+            let radius = Float.random(in: 1.5...3.0) // Distance from center
+            
+            let x = radius * sin(phi) * cos(theta)
+            let y = radius * sin(phi) * sin(theta) + 0.5 // Centered a bit higher
+            let z = radius * cos(phi)
+
+            star.position = SIMD3<Float>(x, y, z)
+            newStars.append(star)
+        }
+
+        self.starEntities = newStars
+    }
+
+    /// Starts a timer to animate the stars.
+    func startStarAnimation() {
+        animationTimer?.invalidate() // Invalidate old timer
+        animationTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
+            for star in self.starEntities {
+                // Gently move the star up and down relative to its anchor
+                 star.position.y += Float.random(in: -0.002...0.002)
+            }
+        }
+    }
+
+    /// Stops the animation timer.
+    func stopStarAnimation() {
+        animationTimer?.invalidate()
+        animationTimer = nil
+    }
 }
 
 // MARK: - ARViewContainer
 
 struct ARViewContainer: UIViewRepresentable {
     @Binding var shimaScreenPosition: CGPoint?
+    @Binding var starEntities: [ModelEntity] // Receive the star entities
 
     func makeCoordinator() -> Coordinator {
         Coordinator()
@@ -147,22 +208,22 @@ struct ARViewContainer: UIViewRepresentable {
         config.planeDetection = [.horizontal]
         arView.session.run(config)
 
-        // アンカー設置
-        let anchor = AnchorEntity(plane: .horizontal, minimumBounds: [0.2, 0.2])
-        arView.scene.anchors.append(anchor)
+        // Anchor for the character, placed on a horizontal surface
+        let characterAnchor = AnchorEntity(plane: .horizontal, minimumBounds: [0.2, 0.2])
+        arView.scene.anchors.append(characterAnchor)
 
-        // shima エンティティ配置
+        // Load shima entity and add to its anchor
         Task {
             do {
                 let shimaEntity = try await Entity(named: "shima")
-                anchor.addChild(shimaEntity)
+                characterAnchor.addChild(shimaEntity)
                 context.coordinator.shimaEntity = shimaEntity
             } catch {
                 print("Failed to load shima entity: \(error)")
             }
         }
 
-        // フレームごとに座標更新
+        // Subscribe to scene updates to track the character's screen position
         arView.scene.subscribe(to: SceneEvents.Update.self) { _ in
             if let position = context.coordinator.screenPosition(for: context.coordinator.shimaEntity) {
                 DispatchQueue.main.async {
@@ -174,23 +235,45 @@ struct ARViewContainer: UIViewRepresentable {
         return arView
     }
 
-    func updateUIView(_ uiView: ARView, context: Context) {}
+    func updateUIView(_ uiView: ARView, context: Context) {
+        // This function is called when @Binding properties change.
+        // We add the stars here, but only once.
+        if !starEntities.isEmpty && !context.coordinator.starsAdded {
+            for starModel in starEntities {
+                // 1. Create an AnchorEntity at the star's desired world position.
+                let starAnchor = AnchorEntity(world: starModel.position)
+                
+                // 2. The model's position is now relative to its anchor, so reset it.
+                starModel.position = .zero
+                
+                // 3. Add the star model as a child of the anchor.
+                starAnchor.addChild(starModel)
+                
+                // 4. Add the anchor (with the star) to the scene.
+                uiView.scene.addAnchor(starAnchor)
+            }
+            // 5. Set the flag so we don't add the stars again on the next update.
+            context.coordinator.starsAdded = true
+        }
+    }
 
     class Coordinator: ARViewCoordinator {
         var cancellables = Set<AnyCancellable>()
+        var starsAdded = false // Flag to track if stars have been added
     }
 }
 
 // MARK: - ARViewCoordinator
 
 class ARViewCoordinator {
-    var arView: ARView?
+    weak var arView: ARView?
     var shimaEntity: Entity?
 
     func screenPosition(for entity: Entity?) -> CGPoint? {
         guard let entity = entity, let arView = arView else { return nil }
         let worldPosition = entity.position(relativeTo: nil)
-        let projected = arView.project(worldPosition + SIMD3<Float>(0, 0.15, 0)) // 頭上少し上
+        // Project the position slightly above the entity's origin
+        let projected = arView.project(worldPosition + SIMD3<Float>(0, 0.15, 0))
         return projected.map { CGPoint(x: CGFloat($0.x), y: CGFloat($0.y)) }
     }
 }
@@ -215,7 +298,7 @@ class AudioManager {
 
         do {
             player = try AVAudioPlayer(contentsOf: url)
-            player?.numberOfLoops = -1 // 無限ループ
+            player?.numberOfLoops = -1 // Infinite loop
             player?.volume = 0.5
             player?.play()
             print("🎵 BGM started")
@@ -229,4 +312,9 @@ class AudioManager {
         print("🛑 BGM stopped")
     }
 }
+
+// MARK: - Dummy Views for Compilation
+// These are placeholders so the code can compile without errors.
+// You should have your own implementations for these.
+
 
