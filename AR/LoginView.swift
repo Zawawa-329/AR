@@ -1,45 +1,22 @@
 import SwiftUI
-import AVFoundation
-
-var bgmPlayer: AVAudioPlayer?
-
-func playBGM() {
-    guard let url = Bundle.main.url(forResource: "sample1", withExtension: "mp3") else {
-        print("BGM ファイルが見つかりません")
-        return
-    }
-
-    do {
-        bgmPlayer = try AVAudioPlayer(contentsOf: url)
-        bgmPlayer?.numberOfLoops = -1
-        bgmPlayer?.play()
-    } catch {
-        print("BGM 再生エラー: \(error.localizedDescription)")
-    }
-}
 
 struct LoginView: View {
     @EnvironmentObject var appState: AppState
     @State private var inputName = ""
-    @State private var displayedText = ""
-    @State private var charIndex = 0
-
 
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                // 背景画像
                 Image("login_background")
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .ignoresSafeArea()
 
-                // メインUI
                 VStack(spacing: 30) {
-                                    Text("おかえりなさい")  // ← ここを直接文字に変更
-                                        .font(.system(size: 36, weight: .semibold, design: .rounded))
-                                        .foregroundColor(.brown)
-                                    
+                    Text("おかえりなさい")
+                        .font(.system(size: 36, weight: .semibold, design: .rounded))
+                        .foregroundColor(.brown)
+                    
                     TextField("あなたの名前を入力してね！", text: $inputName)
                         .padding()
                         .background(Color.white.opacity(0.9))
@@ -60,7 +37,7 @@ struct LoginView: View {
                             .foregroundColor(.white)
                             .padding(.vertical, 12)
                             .padding(.horizontal, 60)
-                            .background(inputName.isEmpty ? Color.brown : Color.brown)
+                            .background(Color.brown)
                             .cornerRadius(25)
                             .shadow(color: .blue.opacity(0.3), radius: 5, x: 0, y: 3)
                     }
@@ -71,7 +48,10 @@ struct LoginView: View {
                 .padding(.top, 100)
             }
             .onAppear {
-                playBGM()
+                AudioManager.shared.playBGM(named: "bgm")  // ここでログイン用BGMを再生
+            }
+            .onDisappear {
+                AudioManager.shared.stopBGM()
             }
         }
     }
