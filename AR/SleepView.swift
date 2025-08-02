@@ -6,7 +6,7 @@
 //  Created by owner on 2025/08/01.
 //
 
-/*import SwiftUI
+import SwiftUI
 import RealityKit
 
 struct SleepView: View {
@@ -19,34 +19,44 @@ struct SleepView: View {
 
     var body: some View {
         ZStack(alignment: .topLeading) {
-            RealityView { content in
-                let model = Entity()
-                let mesh = MeshResource.generateBox(size: 0.1, cornerRadius: 0.005)
-                let material = SimpleMaterial(color: .gray, roughness: 0.15, isMetallic: true)
-                model.components.set(ModelComponent(mesh: mesh, materials: [material]))
-                model.position = [0, 0.05, 0]
-
-                let anchor = AnchorEntity(.plane(.horizontal, classification: .any, minimumBounds: SIMD2<Float>(0.2, 0.2)))
-                anchor.addChild(model)
-                content.add(anchor)
-
-                content.camera = .spatialTracking
-            }
-            .edgesIgnoringSafeArea(.all)
-
-            Button(action: {
-                withAnimation {
-                    isMenuOpen.toggle()
+                RealityView { content in
+                   /* let model = Entity()
+                    let mesh = MeshResource.generateBox(size: 0.1, cornerRadius: 0.005)
+                    let material = SimpleMaterial(color: .gray, roughness: 0.15, isMetallic: true)
+                    model.components.set(ModelComponent(mesh: mesh, materials: [material]))
+                    model.position = [0, 0.05, 0]*/
+                    
+                    let anchor = AnchorEntity(.plane(.horizontal, classification: .any, minimumBounds: SIMD2<Float>(0.2, 0.2)))
+                   
+                    content.add(anchor)
+                    
+                    content.camera = .spatialTracking
+                    
+                    Task{
+                        do{
+                            let entitiy=try await Entity(named:"shima")
+                            anchor.addChild(entitiy)
+                        }catch{
+                            print("error")
+                        }
+                    }
+                    
                 }
-            }) {
-                Image(systemName: "line.3.horizontal")
-                    .resizable()
-                    .frame(width: 30, height: 20)
-                    .foregroundColor(Color.green)
-                    .padding()
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
-            }
-            .padding()
+                .edgesIgnoringSafeArea(.all)
+                
+                Button(action: {
+                    withAnimation {
+                        isMenuOpen.toggle()
+                    }
+                }) {
+                    Image(systemName: "line.3.horizontal")
+                        .resizable()
+                        .frame(width: 30, height: 20)
+                        .foregroundColor(Color.green)
+                        .padding()
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                }
+                .padding()
 
             if isMenuOpen {
                 VStack(alignment: .leading, spacing: 20) {
@@ -71,21 +81,6 @@ struct SleepView: View {
                 case .dressUp: DressUpView()
                 case .content: ContentView()}
             }
-        }
-    }
-}*/
-import SwiftUI
-
-struct SleepView: View {
-    var body: some View {
-        VStack {
-            Spacer()
-            Text("おやすみモード")
-                .font(.title)
-                .padding()
-                .background(Color.white.opacity(0.8))
-                .cornerRadius(10)
-                .padding()
         }
     }
 }
