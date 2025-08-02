@@ -24,7 +24,6 @@ struct LoginView: View {
     @State private var displayedText = ""
     @State private var charIndex = 0
 
-    private let fullText = "おかえりなさい"
 
     var body: some View {
         GeometryReader { geometry in
@@ -37,11 +36,10 @@ struct LoginView: View {
 
                 // メインUI
                 VStack(spacing: 30) {
-                    Text(displayedText)
-                        .font(.system(size: 36, weight: .semibold, design: .rounded))
-                        .foregroundColor(.brown)
-                        .animation(.easeIn(duration: 0.2), value: displayedText)
-
+                                    Text("おかえりなさい")  // ← ここを直接文字に変更
+                                        .font(.system(size: 36, weight: .semibold, design: .rounded))
+                                        .foregroundColor(.brown)
+                                    
                     TextField("あなたの名前を入力してね！", text: $inputName)
                         .padding()
                         .background(Color.white.opacity(0.9))
@@ -74,22 +72,6 @@ struct LoginView: View {
             }
             .onAppear {
                 playBGM()
-                startTypewriter()
-            }
-        }
-    }
-
-    func startTypewriter() {
-        displayedText = ""
-        charIndex = 0
-
-        Timer.scheduledTimer(withTimeInterval: 0.2, repeats: true) { timer in
-            if charIndex < fullText.count {
-                let index = fullText.index(fullText.startIndex, offsetBy: charIndex)
-                displayedText.append(fullText[index])
-                charIndex += 1
-            } else {
-                timer.invalidate()
             }
         }
     }
