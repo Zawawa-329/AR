@@ -35,20 +35,27 @@ struct ContentView: View {
     
     var body: some View {
         ZStack(alignment: .topLeading) {
+            // ▼▼▼ このRealityViewの中身を変更 ▼▼▼
             RealityView { content in
-                let model = Entity()
-                let mesh = MeshResource.generateBox(size: 0.1, cornerRadius: 0.005)
-                let material = SimpleMaterial(color: .gray, roughness: 0.15, isMetallic: true)
-                model.components.set(ModelComponent(mesh: mesh, materials: [material]))
-                model.position = [0, 0.05, 0]
-                
-                let anchor = AnchorEntity(.plane(.horizontal, classification: .any, minimumBounds: SIMD2<Float>(0.2, 0.2)))
-                anchor.addChild(model)
+                // 1. アンカーを作成
+                let anchor = AnchorEntity(plane: .horizontal)
                 content.add(anchor)
+                
+                // 2. ライトを作成してアンカーに追加
+                let lightEntity = Entity()
+                lightEntity.components.set(PointLightComponent(color: .white, intensity: 5000))
+                lightEntity.position = [0, 0.5, 0] // モデルの少し上、手前に配置
+                anchor.addChild(lightEntity)
+                
+                // 3. シマエナガのモデルを生成してアンカーに追加
+                if let shimaenaga = createShimaenaga() {
+                    anchor.addChild(shimaenaga)
+                }
                 
                 content.camera = .spatialTracking
             }
             .edgesIgnoringSafeArea(.all)
+            // ▲▲▲ ここまで ▲▲▲
             
             Button(action: {
                 withAnimation {
@@ -113,6 +120,48 @@ struct ContentView: View {
             }
         }
     }
+    
+    // ▼▼▼ この関数を追加 ▼▼▼
+    /// シマエナガの各パーツを組み合わせて一体のモデルとして返す関数
+    func createShimaenaga() -> ModelEntity? {
+        // --- マテリアルの準備 ---
+        let bodyMaterial = SimpleMaterial(color: .white, roughness: 1.0, isMetallic: false)
+        let wingMaterial = SimpleMaterial(color: .brown, roughness: 1.0, isMetallic: false)
+        let eyeMaterial = SimpleMaterial(color: .black, isMetallic: false)
+
+        // --- 各パーツの作成 ---
+        let body = ModelEntity(mesh: .generateSphere(radius: 0.05), materials: [bodyMaterial])
+
+        let head = ModelEntity(mesh: .generateSphere(radius: 0.035), materials: [bodyMaterial])
+        head.position = [0, 0.045, 0]
+
+        let leftEye = ModelEntity(mesh: .generateSphere(radius: 0.003), materials: [eyeMaterial])
+        leftEye.position = [-0.01, 0.015, 0.032]
+        let rightEye = ModelEntity(mesh: .generateSphere(radius: 0.003), materials: [eyeMaterial])
+        rightEye.position = [0.01, 0.015, 0.032]
+
+        let beak = ModelEntity(mesh: .generateCone(height: 0.004, radius: 0.005), materials: [eyeMaterial])
+        beak.position = [0, 0.01, 0.033]
+
+        let wingMesh = MeshResource.generateSphere(radius: 0.03)
+        let leftWing = ModelEntity(mesh: wingMesh, materials: [wingMaterial])
+        leftWing.position = [-0.025, 0.0, -0.01]
+        let rightWing = ModelEntity(mesh: wingMesh, materials: [wingMaterial])
+        rightWing.position = [0.025, 0.0, -0.01]
+
+        // --- 全パーツを合体 ---
+        let shimaenagaModel = ModelEntity()
+        shimaenagaModel.addChild(body)
+        shimaenagaModel.addChild(head)
+        head.addChild(leftEye)
+        head.addChild(rightEye)
+        head.addChild(beak)
+        body.addChild(leftWing)
+        body.addChild(rightWing)
+
+        return shimaenagaModel
+    }
+    // ▲▲▲ ここまで ▲▲▲
     
     func buildPrompt() -> String {
         var prompt = "以下はユーザーのアンケート回答です。それに合った一言コメントを優しく伝えてください。友達に話すみたいに。\n\n"
@@ -206,4 +255,3 @@ struct ContentView: View {
             return nil
         }
 }
-
