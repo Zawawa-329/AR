@@ -51,6 +51,7 @@ struct ContentView: View {
                 Task{
                     do{
                         let entitiy=try await Entity(named:"shima")
+                       
                         anchor.addChild(entitiy)
                     }catch{
                         print("error")
