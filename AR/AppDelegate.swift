@@ -1,8 +1,7 @@
+// AppDelegate.swift
+// AR
 //
-//  AppDelegate.swift
-//  AR
-//
-//  Created by owner on 2025/07/29.
+// Created by owner on 2025/07/29.
 //
 
 import UIKit
@@ -13,17 +12,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
 
-    // アプリ全体で使うログイン状態とユーザー名を管理
-    @Published var isLoggedIn = false
-    @Published var userNameStore = ""
-
     func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
 
-        // State管理用のObservableObjectを作成
-        let appState = AppState()
+        // State管理用のObservableObjectを作成 (既存のAppStateをそのまま利用)
+        let appState = AppState.shared // シングルトンインスタンスを利用
 
         // RootViewにappStateを環境オブジェクトとして渡す
         let rootView = RootView()
@@ -36,13 +31,4 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         return true
     }
 }
-
-// ObservableObjectで状態を管理
-class AppState: ObservableObject {
-    
-    static let shared = AppState()
-    
-    @Published var showSplash = true
-    @Published var isLoggedIn = false
-    @Published var userNameStore = ""
-}
+// AppStateクラスは上記で修正済み
