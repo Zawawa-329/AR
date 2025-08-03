@@ -82,9 +82,26 @@ struct DressUpView: View {
 
             // ✅ カラーバーとアクセサリーボタンは selectedMode == nil のときだけ表示
             if selectedMode == nil {
+                // DressUpView.swift の ColorSlider 部分の近くにカメラボタン追加
                 VStack {
                     Spacer()
-                    VStack {
+                    VStack(alignment: .trailing) {
+                        HStack {
+                            Spacer()
+                            Button(action: {
+                                takeScreenshot()
+                            }) {
+                                Image(systemName: "camera")
+                                    .resizable()
+                                    .frame(width: 30, height: 25)
+                                    .padding(8)
+                                    .background(Color.white)
+                                    .cornerRadius(8)
+                                    .shadow(radius: 3)
+                            }
+                        }
+                        .padding(.bottom, 5)
+
                         ColorSlider(label: "Red", value: $red, onUpdate: reloadModel)
                         ColorSlider(label: "Green", value: $green, onUpdate: reloadModel)
                         ColorSlider(label: "Blue", value: $blue, onUpdate: reloadModel)
@@ -94,6 +111,7 @@ struct DressUpView: View {
                     .cornerRadius(12)
                     .padding(.bottom, 40)
                 }
+
                 
                 VStack(spacing: 10) {
                     AccessoryButton(imageName: "ribbon", action: { selectedAccessory = .ribbon; reloadModel() })
@@ -122,6 +140,17 @@ struct DressUpView: View {
             }
         }
         .edgesIgnoringSafeArea(.all)
+    }
+    
+    func takeScreenshot() {
+        let window = UIApplication.shared.windows.first { $0.isKeyWindow }
+
+        let renderer = UIGraphicsImageRenderer(size: window?.bounds.size ?? .zero)
+        let image = renderer.image { _ in
+            window?.drawHierarchy(in: window?.bounds ?? .zero, afterScreenUpdates: true)
+        }
+
+        UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
     }
 
     // モデル再生成
