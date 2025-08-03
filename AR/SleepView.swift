@@ -13,6 +13,20 @@ struct SleepView: View {
     @State private var wiggle = false
     @State private var speechBubbleText: String? = nil
     @State private var sleepLog: [String] = []
+    
+    
+    let sleepTalks = [
+        "むにゃむにゃ…",
+        "すやすや…💤",
+        "おやつ…🐛",
+        "うとうと…☁️",
+        "zzz…🌙",
+        
+        "ラーメン食べたいなぁ",
+        "明日も話したいなぁ"
+        
+    ]
+
 
     enum Mode {
         case care, walk, dressUp, content
@@ -33,7 +47,8 @@ struct SleepView: View {
                             .cornerRadius(10)
                             .shadow(radius: 4)
                             .transition(.opacity)
-                            .offset(y: -150)
+                            .offset(y: -10)
+                            .offset(x: 250)
                     }
                 }
 
@@ -72,14 +87,15 @@ struct SleepView: View {
                                     sleepStartTime = Date()
                                     sleepDuration = nil
                                     speechBubbleText = "おやすみ😚"
+                                    showZzzAnimation()
                                     sleepLog.append("🛌 寝た時刻: \(formatter.string(from: now))")
                                 } else if let start = sleepStartTime {
                                     sleepDuration = Date().timeIntervalSince(start)
                                     showSleepSummary = true
-                                    speechBubbleText = "おはよう！"
+                                    speechBubbleText = "おはよう☺️"
                                     sleepLog.append("🌞 起きた時刻: \(formatter.string(from: now))")
                                 }
-                                showZzzAnimation()
+                               
 
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
                                     withAnimation {
@@ -182,10 +198,10 @@ struct SleepView: View {
             // メニュー表示
             if isMenuOpen {
                 VStack(alignment: .leading, spacing: 20) {
-                    Button("お世話") { selectedMode = .care; isMenuOpen = false }
-                    Button("お散歩") { selectedMode = .walk; isMenuOpen = false }
-                    Button("お着替え") { selectedMode = .dressUp; isMenuOpen = false }
-                    Button("ホーム") { selectedMode = .content; isMenuOpen = false }
+                    Button("お世話") { attemptNavigation(to: .care)  }
+                    Button("お散歩") { attemptNavigation(to: .walk)}
+                    Button("お着替え") {  attemptNavigation(to: .dressUp)}
+                    Button("ホーム") {  attemptNavigation(to: .content)  }
                 }
                 .padding()
                 .background(Color.white)
@@ -206,7 +222,7 @@ struct SleepView: View {
             }
         }
         .onAppear {
-            AudioManager.shared.playBGM(named: "bgm-sleep")
+            startSleepTalkTimer()
         }
         .onDisappear {
             AudioManager.shared.stopBGM()
@@ -233,6 +249,44 @@ struct SleepView: View {
             showZzzAnimation()
         }
     }
+    
+    
+    // SleepView の中の適切な位置に追加（例えば feedShima() の下とかでOK）
+    func attemptNavigation(to mode: Mode) {
+        if isLightOff {
+            speechBubbleText = "おいていかないで…😭"
+            isMenuOpen = false  // メニューだけ閉じる
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                withAnimation {
+                    speechBubbleText = nil
+                }
+            }
+        } else {
+            selectedMode = mode
+            isMenuOpen = false
+        }
+    }
+    
+    
+    func startSleepTalkTimer() {
+        Timer.scheduledTimer(withTimeInterval: 3, repeats: true) { _ in
+            guard isLightOff, speechBubbleText == nil else { return }
+            
+            if Bool.random() {  // ランダムに寝言を出す
+                withAnimation {
+                    speechBubbleText = sleepTalks.randomElement()
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                    withAnimation {
+                        speechBubbleText = nil
+                    }
+                }
+            }
+        }
+    }
+
+
 }
 
 func formattedDuration(_ interval: TimeInterval) -> String {
@@ -241,6 +295,8 @@ func formattedDuration(_ interval: TimeInterval) -> String {
     let seconds = Int(interval) % 60
     return String(format: "%02d時間 %02d分 %02d秒", hours, minutes, seconds)
 }
+
+
 
 struct ShimaFaceView: View {
     let isLightOn: Bool
@@ -300,4 +356,5 @@ struct SpeechBubble: View {
         }
     }
 }
+
 
