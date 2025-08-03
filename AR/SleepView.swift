@@ -352,7 +352,7 @@ struct SpeechBubble: View {
             Triangle()
                 .fill(Color.white.opacity(0.9))
                 .frame(width: 30, height: 10)
-                .offset(y: -65)
+                .offset(y: -75)
         }
     }
 }
