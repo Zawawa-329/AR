@@ -143,7 +143,7 @@ struct ContentView: View {
                     
                     // テキスト入力欄と送信ボタン
                     HStack {
-                            TextField("メッセージを入力", text: $userInput)
+                            TextField("お話ししよう。", text: $userInput)
                                 .textFieldStyle(RoundedBorderTextFieldStyle())
                                 .focused($isInputActive)
                             
