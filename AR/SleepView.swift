@@ -34,7 +34,7 @@ struct SleepView: View {
 
     var body: some View {
         ZStack(alignment: .topLeading) {
-            Color(isLightOff ? .black : .blue.opacity(0.1))
+            Color(isLightOff ? .black :Color(red: 0.6, green: 0.8, blue: 1.0))
                 .ignoresSafeArea()
 
             if selectedMode == nil {
