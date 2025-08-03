@@ -92,5 +92,12 @@ struct StartView: View {
             // ContentViewとその子孫ビューがAppStateにアクセスできるように注入
             .environmentObject(appState) // ★追加
         }
+        .onAppear {
+            AudioManager.shared.playBGM(named: "bgm")  // ここでログイン用BGMを再生
+        }
+        .contentShape(Rectangle()) // 全体にタップ判定
+        .onTapGesture {
+            AudioManager.shared.playSE(named: "tap", withExtension: "m4a")
+        }
     }
 }

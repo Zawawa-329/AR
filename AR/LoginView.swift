@@ -50,8 +50,9 @@ struct LoginView: View {
             .onAppear {
                 AudioManager.shared.playBGM(named: "bgm")  // ここでログイン用BGMを再生
             }
-            .onDisappear {
-                AudioManager.shared.stopBGM()
+            .contentShape(Rectangle()) // 全体にタップ判定
+            .onTapGesture {
+                AudioManager.shared.playSE(named: "tap", withExtension: "m4a")
             }
         }
     }
